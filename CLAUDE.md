@@ -1,0 +1,7 @@
+# telemetry-lakehouse
+Synthetic IoT telemetry for 5 devices: generator → S3 raw/ → Databricks bronze (Auto Loader)
+→ dbt silver/gold → publisher → ThingsBoard CE. Windows 10, PowerShell 5.1.
+## Layout- generator/ — 5-device simulator (MQTT live + JSONL batches with 5 data defects)- infra/ — Terraform: S3, IAM, Budgets · databricks/ — Asset Bundle (Auto Loader job)- dbt/ — staging → marts → srv_thingsboard · publisher/ — gold → ThingsBoard- thingsboard/ — compose, provisioning, dashboards/*.json · k8s/ — kind manifests
+## Commands (repo root)- make doctor · uv run pytest · uv run ruff check .- dbt: uv run dbt <cmd> --project-dir dbt --profiles-dir dbt- ThingsBoard: cd thingsboard; docker compose up -d → http://localhost:8080
+## Rules- Never read .env*, *.tokens.json, *.tfstate*, ~/.aws, ~/.databrickscfg. Scripts read secrets themselves.- dbt runs only with target dev; prod only from CI.- terraform apply/destroy, docker push, kubectl outside kind-* contexts: human only.- Never `docker compose down -v` in thingsboard/.
+## Known gotchas- ThingsBoard ts is epoch milliseconds; telemetry with time is {"ts": <ms>, "values": {...}}.- Raw files are JSON, not Delta: reading them as Delta fails on _delta_log.- dbt profile must set catalog, otherwise Databricks falls back to hive_metastore.- UC IAM role: ListBucket on the bucket ARN, object actions on bucket/prefix/*, role must assume itself.- PowerShell curl is an alias: use curl.exe and pass JSON via -d "@file.json".

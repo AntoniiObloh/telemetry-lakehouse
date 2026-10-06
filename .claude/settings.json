@@ -1,0 +1,51 @@
+{
+"permissions": {
+  "deny": [
+    "Read(./**/.env*)",
+    "Read(./**/*.tokens.json)",
+    "Read(./**/*.tfstate*)",
+    "Read(./**/*.key)",
+    "Bash(terraform destroy:*)",
+    "Bash(aws iam:*)",
+    "Bash(pg_restore:*)",
+    "Bash(dropdb:*)",
+    "Bash(docker compose down -v*)",
+    "PowerShell(terraform destroy:*)",
+    "PowerShell(aws iam:*)",
+    "PowerShell(pg_restore:*)",
+    "PowerShell(dropdb:*)",
+    "PowerShell(docker compose down -v*)"
+  ],
+  "ask": [
+    "Bash(aws:*)",
+    "Bash(databricks:*)",
+    "Bash(kubectl:*)",
+    "Bash(terraform apply:*)",
+    "Bash(docker push:*)",
+    "Bash(psql:*)",
+    "Bash(docker compose exec:*)",
+    "Bash(git push:*)",
+    "PowerShell(aws:*)",
+    "PowerShell(databricks:*)",
+    "PowerShell(kubectl:*)",
+    "PowerShell(terraform apply:*)",
+    "PowerShell(docker push:*)",
+    "PowerShell(psql:*)",
+    "PowerShell(docker compose exec:*)",
+    "PowerShell(git push:*)"
+  ],
+  "allow": [
+    "Bash(git diff:*)",
+    "Bash(git log:*)",
+    "Bash(git status:*)",
+    "Bash(jq:*)",
+    "Bash(make doctor)",
+    "Bash(uv run pytest:*)",
+    "Bash(uv run ruff:*)",
+    "Bash(docker build:*)",
+    "Bash(docker compose ps:*)",
+    "Bash(docker compose logs:*)",
+    "Bash(terraform fmt:*)",
+    "Bash(terraform validate:*)"
+  ]
+}}

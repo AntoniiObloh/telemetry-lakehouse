@@ -1,0 +1,48 @@
+# Python / uv
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Secrets
+.env
+*.env
+.env.*
+!.env.example
+*.tokens.json
+*.key
+*.pem
+*.tfvars
+!*.tfvars.example
+
+# Generated data
+data/
+logs/
+
+# dbt
+dbt/target/
+dbt/logs/
+dbt/dbt_packages/
+dbt/.user.yml
+
+# Terraform (keep .terraform.lock.hcl in git)
+.terraform/
+*.tfstate*
+*.tfplan
+crash.log
+crash.*.log
+
+# Databricks
+.databricks/
+
+# Claude Code
+.claude/settings.local.json
+
+# IDE / OS
+.idea/
+.vscode/
+Thumbs.db
+Desktop.ini
