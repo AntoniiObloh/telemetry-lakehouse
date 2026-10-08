@@ -1,4 +1,4 @@
-.PHONY: doctor tb-provision tb-smoke bundle-validate
+.PHONY: doctor tb-provision tb-smoke bundle-validate dbt-deps dbt-build dbt-lint
 
 doctor:
 	uv run python scripts/doctor.py .
@@ -12,3 +12,14 @@ tb-smoke:
 # Needs BUNDLE_VAR_bucket (the raw bucket name) in the environment.
 bundle-validate:
 	cd databricks && databricks bundle validate -t dev
+
+# dbt runs locally only against the dev target; prod runs from CI.
+dbt-deps:
+	uv run dbt deps --project-dir dbt --profiles-dir dbt
+
+dbt-build:
+	uv run dbt build --project-dir dbt --profiles-dir dbt --target dev
+
+# The dbt templater compiles models, so this needs the same env vars as dbt-build.
+dbt-lint:
+	uv run sqlfluff lint dbt/models

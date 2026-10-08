@@ -1,0 +1,34 @@
+name: telemetry_lakehouse
+version: "1.0.0"
+profile: telemetry_lakehouse
+require-dbt-version: [">=1.12.0", "<2.0.0"]
+
+model-paths: ["models"]
+macro-paths: ["macros"]
+seed-paths: ["seeds"]
+test-paths: ["tests"]
+analysis-paths: ["analyses"]
+snapshot-paths: ["snapshots"]
+
+clean-targets: ["target", "dbt_packages"]
+
+# Custom schemas apply outside dev only; see macros/generate_schema_name.sql.
+models:
+  telemetry_lakehouse:
+    staging:
+      +schema: silver
+      +materialized: view
+    marts:
+      +schema: gold
+      +materialized: table
+
+seeds:
+  telemetry_lakehouse:
+    +schema: silver
+    devices:
+      +column_types:
+        device_id: string
+        site: string
+        model: string
+        latitude: double
+        longitude: double

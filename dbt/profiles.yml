@@ -1,0 +1,15 @@
+# No secrets here: every value comes from the environment.
+# DBT_ENV_SECRET_* variables are scrubbed from dbt logs. Only the dev target exists locally;
+# prod runs only from CI.
+telemetry_lakehouse:
+  target: dev
+  outputs:
+    dev:
+      type: databricks
+      # Without a catalog Databricks falls back to hive_metastore.
+      catalog: lakehouse
+      schema: dbt_dev
+      host: "{{ env_var('DATABRICKS_HOST') }}"
+      http_path: "{{ env_var('DATABRICKS_HTTP_PATH') }}"
+      token: "{{ env_var('DBT_ENV_SECRET_DATABRICKS_TOKEN') }}"
+      threads: 4

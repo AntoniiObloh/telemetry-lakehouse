@@ -1,0 +1,33 @@
+version: 2
+
+seeds:
+  - name: devices
+    description: >
+      Device reference data: one row per simulated sensor. A byte-for-byte copy of
+      generator/devices.csv, kept identical by tests/test_dbt_seed.py.
+    columns:
+      - name: device_id
+        description: Device name, matches device_id in telemetry events.
+        data_tests:
+          - unique
+          - not_null
+      - name: site
+        description: Site the device belongs to (site-a, site-b).
+        data_tests:
+          - not_null
+      - name: model
+        description: Hardware model; drives the baseline temperature in the generator.
+        data_tests:
+          - not_null
+      - name: latitude
+        data_tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: -90
+                max_value: 90
+      - name: longitude
+        data_tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: -180
+                max_value: 180

@@ -1,0 +1,6 @@
+device_id,site,model,latitude,longitude
+sensor-01,site-a,TH-100,50.4501,30.5234
+sensor-02,site-a,TH-100,50.4547,30.5238
+sensor-03,site-a,TH-200,50.4422,30.5367
+sensor-04,site-b,TH-100,49.8397,24.0297
+sensor-05,site-b,TH-200,49.8425,24.0316

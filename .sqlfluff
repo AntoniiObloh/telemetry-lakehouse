@@ -1,0 +1,12 @@
+[sqlfluff]
+dialect = databricks
+templater = dbt
+
+[sqlfluff:templater:dbt]
+project_dir = dbt
+profiles_dir = dbt
+profile = telemetry_lakehouse
+target = dev
+
+[sqlfluff:rules:capitalisation.keywords]
+capitalisation_policy = lower
