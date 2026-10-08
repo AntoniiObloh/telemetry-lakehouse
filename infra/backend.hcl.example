@@ -1,0 +1,2 @@
+# Copy to backend.hcl (git-ignored). Used as: terraform -chdir=infra init -backend-config=backend.hcl
+bucket = "tl-tfstate-<suffix>"

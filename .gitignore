@@ -33,6 +33,7 @@ dbt/.user.yml
 *.tfstate*
 *.tfplan
 tf.plan
+infra/backend.hcl
 crash.log
 crash.*.log
 

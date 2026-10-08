@@ -1,0 +1,8 @@
+# Copy to terraform.tfvars (git-ignored) and fill in your own values.
+suffix             = "<suffix>"
+alert_email        = "<you@example.com>"
+uc_master_role_arn = "arn:aws:iam::<account-id>:role/<uc-master-role-from-databricks>"
+
+# Pass 2, after the Databricks storage credential exists (Stage 5.2):
+# uc_external_id = "<real external id>"
+# self_assume    = true
