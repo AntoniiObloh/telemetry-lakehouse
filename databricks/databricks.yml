@@ -1,0 +1,43 @@
+# Bronze ingestion bundle. From the repo root (see `make bundle-validate`):
+#   BUNDLE_VAR_bucket=<raw bucket>  databricks bundle validate -t dev   (run inside databricks/)
+# The workspace host comes from the CLI profile (DATABRICKS_CONFIG_PROFILE), not from this file.
+bundle:
+  name: telemetry_lakehouse
+
+variables:
+  bucket:
+    description: Raw bucket name, the Terraform output raw_bucket_name (no s3:// prefix).
+
+targets:
+  dev:
+    # Development mode prefixes the job name and pauses its schedule by default; unpause it
+    # in the workspace when you want the hourly run.
+    mode: development
+    default: true
+
+resources:
+  jobs:
+    ingest_bronze:
+      name: ingest_bronze
+      description: Auto Loader - s3 raw/telemetry JSON into lakehouse.bronze.telemetry_raw
+      # Every hour at :05 (Quartz: sec min hour day-of-month month day-of-week).
+      schedule:
+        quartz_cron_expression: "0 5 * * * ?"
+        timezone_id: UTC
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: ingest_bronze
+          spark_python_task:
+            python_file: ./src/ingest_bronze.py
+            parameters:
+              - --bucket
+              - ${var.bucket}
+          # Serverless: no cluster, the Python environment is declared below.
+          environment_key: default
+          # addNewColumns stops the first run that sees a new column (e.g. firmware); the
+          # retry then picks up the updated schema.
+          max_retries: 2
+      environments:
+        - environment_key: default
+          spec:
+            environment_version: "2"
