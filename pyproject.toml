@@ -6,14 +6,25 @@ dependencies = [
     "boto3>=1.43.108",
     "dbt-databricks>=1.12.6",
     "paho-mqtt>=2.1.0",
+    "pyspark>=4.2.0",
     "requests>=2.34.2",
     "tb-rest-client>=4.3",
 ]
 
 [dependency-groups]
+# Runtime deps of the generator image only (generator/Dockerfile: uv sync --only-group generator).
+generator = [
+    "boto3>=1.43.108",
+    "paho-mqtt>=2.1.0",
+]
 dev = [
     "pytest>=9.1.1",
     "ruff>=0.16.10",
     "sqlfluff>=4.4.0",
     "sqlfluff-templater-dbt>=4.4.0",
 ]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# The project is virtual (no build system): put the repo root on the path for `import generator`.
+pythonpath = ["."]
