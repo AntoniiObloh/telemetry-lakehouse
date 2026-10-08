@@ -88,8 +88,7 @@ def reading(device: Device, ts_ms: int, rng: random.Random) -> Reading:
 def battery_level(device_id: str, ts_ms: int) -> int:
     """Slow linear drain over a cycle; a function of time only, not of any state.
 
-    Each device gets i
-uv run pytest generatorts own phase, so the five batteries do not all reset together.
+    Each device gets its own phase, so the five batteries do not all reset together.
     """
     phase_days = zlib.crc32(device_id.encode("utf-8")) % BATTERY_CYCLE_DAYS
     cycle_ms = BATTERY_CYCLE_DAYS * MS_PER_DAY
