@@ -32,6 +32,7 @@ dbt/.user.yml
 .terraform/
 *.tfstate*
 *.tfplan
+tf.plan
 crash.log
 crash.*.log
 
