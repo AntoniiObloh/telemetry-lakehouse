@@ -1,0 +1,10 @@
+# Allowlist: the build context is the repo root, so nothing else may reach the image
+# (thingsboard/.env, *.tokens.json, .venv, data/, .git ...).
+*
+!pyproject.toml
+!uv.lock
+!generator/
+generator/Dockerfile
+generator/compose.yaml
+**/__pycache__
+**/*.py[cod]

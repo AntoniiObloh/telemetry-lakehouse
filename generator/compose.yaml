@@ -1,0 +1,28 @@
+# Batch generator in a container; files land in the repo-root data/ directory.
+# From the repo root:
+#   docker compose -f generator/compose.yaml up --build
+# Window and seed can be overridden: GEN_START, GEN_END, GEN_SEED.
+services:
+  generator:
+    build:
+      context: ..
+      dockerfile: generator/Dockerfile
+    image: telemetry-lakehouse-generator:0.1.0
+    command:
+      - batch
+      - --sink
+      - file
+      - --start
+      - ${GEN_START:-2026-10-06}
+      - --end
+      - ${GEN_END:-2026-10-10}
+      - --seed
+      - ${GEN_SEED:-42}
+    volumes:
+      - ../data:/app/data
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    restart: "no"
