@@ -41,6 +41,10 @@ models:
         description: Minutes between last_seen_at and computed_at.
       - name: longest_gap_minutes_24h
         description: Longest silence in the last 24 hours, window edges included.
+      - name: is_offline
+        description: Silent for longer than the offline_after_minutes var, or never seen.
+        data_tests:
+          - not_null
       - name: health_score
         data_tests:
           - not_null
@@ -52,8 +56,12 @@ models:
   - name: srv_thingsboard
     description: >
       Serving model read by the publisher: long format, one telemetry value per row.
-      The contract fixes column names and types, so a change here fails the build instead
-      of silently breaking the publisher.
+      DEVICE sensor-01..05: temp_avg_1h, temp_max_1h, humidity_avg_1h, readings_1h
+      (hourly series), health_score, battery_last. ASSET Site A / Site B:
+      site_temp_avg_1h (hourly), site_health_avg. ASSET Fleet: fleet_health_avg,
+      devices_offline. The contract fixes column names and types, and the key test
+      fixes the key set, so a change here fails the build instead of silently
+      breaking the publisher.
     config:
       contract:
         enforced: true
@@ -87,9 +95,23 @@ models:
           - type: not_null
       - name: key
         data_type: string
-        description: Telemetry key, e.g. health_score or temperature_avg.
+        description: Telemetry key, e.g. health_score or temp_avg_1h.
         constraints:
           - type: not_null
+        data_tests:
+          - accepted_values:
+              arguments:
+                values:
+                  - temp_avg_1h
+                  - temp_max_1h
+                  - humidity_avg_1h
+                  - readings_1h
+                  - health_score
+                  - battery_last
+                  - site_temp_avg_1h
+                  - site_health_avg
+                  - fleet_health_avg
+                  - devices_offline
       - name: value
         data_type: double
         constraints:

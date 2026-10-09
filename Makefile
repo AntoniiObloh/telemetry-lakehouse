@@ -22,7 +22,7 @@ dbt-build:
 
 # The dbt templater compiles models, so this needs the same env vars as dbt-build.
 dbt-lint:
-	uv run sqlfluff lint dbt/models dbt/snapshots
+	uv run sqlfluff lint dbt/models dbt/snapshots dbt/tests
 
 # dbt build does not check source freshness; this does (warn 2 h, error 6 h).
 dbt-freshness:

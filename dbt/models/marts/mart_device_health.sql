@@ -158,6 +158,12 @@ SELECT
     device_metrics.readings_24h,
     device_metrics.outliers_24h,
     device_metrics.battery,
+    -- Offline: silent for longer than offline_after_minutes, or never seen.
+    coalesce(
+        device_metrics.minutes_since_last_seen
+        > {{ var('offline_after_minutes') }},
+        TRUE
+    ) AS is_offline,
     cast(
         round(
             greatest(

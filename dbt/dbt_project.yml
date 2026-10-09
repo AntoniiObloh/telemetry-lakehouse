@@ -18,6 +18,10 @@ vars:
   # Plausible range for the TH sensors; readings outside it are flagged as outliers.
   outlier_temperature_min: -40
   outlier_temperature_max: 85
+  # A device counts as offline after this many minutes without data (cadence is 30 s).
+  offline_after_minutes: 10
+  # Tests: a silence longer than this is reported as a gap (severity warn).
+  max_gap_minutes: 120
 
 # Custom schemas apply outside dev only; see macros/generate_schema_name.sql.
 models:

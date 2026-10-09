@@ -22,10 +22,26 @@ models:
         description: Measurement time (from ts, epoch ms), UTC.
         data_tests:
           - not_null
+          # Gaps: the generator silences a device on purpose, so this only warns.
+          - no_gap_longer_than:
+              arguments:
+                partition_by: device_id
+                max_gap_minutes: "{{ var('max_gap_minutes') }}"
+              config:
+                severity: warn
       - name: ts_ms
         description: Measurement time as epoch milliseconds, as sent by the device.
       - name: sent_at
         description: Time of the batch that delivered the event; later than event_at for late events.
+      - name: temperature
+        data_tests:
+          # Outliers: the generator injects them on purpose, so this only warns.
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: "{{ var('outlier_temperature_min') }}"
+                max_value: "{{ var('outlier_temperature_max') }}"
+              config:
+                severity: warn
       - name: battery
         data_tests:
           - dbt_utils.accepted_range:
