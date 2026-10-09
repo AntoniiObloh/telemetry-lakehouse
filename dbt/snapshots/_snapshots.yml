@@ -3,12 +3,27 @@ version: 2
 snapshots:
   - name: dim_device
     description: >
-      Device dimension with history (SCD2): devices seed plus int_device_firmware.
-      The current row of a device has dbt_valid_to = null.
+      Device dimension with history (SCD2): devices seed plus
+      int_device_firmware_latest. The current row of a device has dbt_valid_to = null.
     columns:
       - name: device_id
+        description: Device name; one current row per device.
         data_tests:
           - not_null
           - unique:
               config:
                 where: "dbt_valid_to IS NULL"
+      - name: site
+        description: Site the device belongs to (site-a, site-b).
+      - name: model
+        description: Hardware model (TH-100, TH-200).
+      - name: latitude
+        description: Device latitude, degrees.
+      - name: longitude
+        description: Device longitude, degrees.
+      - name: firmware
+        description: Latest known firmware at snapshot time; null before the drift.
+      - name: dbt_valid_from
+        description: When this version of the device became current (snapshot run time).
+      - name: dbt_valid_to
+        description: When this version was replaced; null for the current version.

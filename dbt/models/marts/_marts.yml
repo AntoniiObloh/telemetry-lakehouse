@@ -16,12 +16,31 @@ models:
             expression: "readings_count >= outliers_count"
     columns:
       - name: device_id
+        description: Device; with hour_at forms the key.
         data_tests:
           - not_null
       - name: hour_at
         description: Start of the hour, UTC.
         data_tests:
           - not_null
+      - name: readings_count
+        description: Readings in the hour, outliers included (120 for a full normal hour).
+      - name: outliers_count
+        description: Readings in the hour flagged as outliers.
+      - name: temperature_avg
+        description: Average temperature, outliers excluded, rounded to 0.01.
+      - name: temperature_min
+        description: Minimum temperature, outliers excluded.
+      - name: temperature_max
+        description: Maximum temperature, outliers excluded.
+      - name: humidity_avg
+        description: Average humidity, outlier readings excluded, rounded to 0.01.
+      - name: humidity_min
+        description: Minimum humidity, outlier readings excluded.
+      - name: humidity_max
+        description: Maximum humidity, outlier readings excluded.
+      - name: battery_min
+        description: Lowest battery level in the hour.
 
   - name: mart_device_health
     description: >
@@ -30,9 +49,12 @@ models:
       max 30), outliers in 24 h (1 each, max 15), battery (0.5 per % below 50, max 15).
     columns:
       - name: device_id
+        description: Device from the devices seed; one row per device.
         data_tests:
           - unique
           - not_null
+      - name: site
+        description: Site the device belongs to (site-a, site-b).
       - name: computed_at
         description: Build time the window and freshness are measured from.
       - name: last_seen_at
@@ -41,11 +63,18 @@ models:
         description: Minutes between last_seen_at and computed_at.
       - name: longest_gap_minutes_24h
         description: Longest silence in the last 24 hours, window edges included.
+      - name: readings_24h
+        description: Readings in the last 24 hours, outliers included.
+      - name: outliers_24h
+        description: Readings in the last 24 hours flagged as outliers.
+      - name: battery
+        description: Battery level of the latest reading, percent.
       - name: is_offline
         description: Silent for longer than the offline_after_minutes var, or never seen.
         data_tests:
           - not_null
       - name: health_score
+        description: 0-100, 100 minus the penalties described above.
         data_tests:
           - not_null
           - dbt_utils.accepted_range:
@@ -114,5 +143,6 @@ models:
                   - devices_offline
       - name: value
         data_type: double
+        description: Numeric telemetry value; rows with a null value are left out.
         constraints:
           - type: not_null

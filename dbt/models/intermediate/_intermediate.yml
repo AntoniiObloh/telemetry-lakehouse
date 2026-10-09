@@ -1,10 +1,11 @@
 version: 2
 
 models:
-  - name: int_device_firmware
+  - name: int_device_firmware_latest
     description: Latest known firmware of every device in the devices seed.
     columns:
       - name: device_id
+        description: Device from the devices seed; one row per device.
         data_tests:
           - unique
           - not_null

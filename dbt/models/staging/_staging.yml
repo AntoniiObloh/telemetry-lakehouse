@@ -8,10 +8,14 @@ models:
       stg_lookback_days of ingestion.
     columns:
       - name: event_id
+        description: >
+          Event identifier from the generator (uuid5 of seed, device and ts). The key:
+          duplicates in bronze share it and are collapsed to the first arrival.
         data_tests:
           - unique
           - not_null
       - name: device_id
+        description: Device that sent the event; must exist in the devices seed.
         data_tests:
           - not_null
           - relationships:
@@ -34,6 +38,7 @@ models:
       - name: sent_at
         description: Time of the batch that delivered the event; later than event_at for late events.
       - name: temperature
+        description: Temperature in degrees C; outliers (999, -80) kept as is and flagged.
         data_tests:
           # Outliers: the generator injects them on purpose, so this only warns.
           - dbt_utils.accepted_range:
@@ -42,7 +47,10 @@ models:
                 max_value: "{{ var('outlier_temperature_max') }}"
               config:
                 severity: warn
+      - name: humidity
+        description: Relative humidity in percent.
       - name: battery
+        description: Battery level in percent at measurement time.
         data_tests:
           - dbt_utils.accepted_range:
               arguments:

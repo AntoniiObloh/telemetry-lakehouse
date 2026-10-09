@@ -22,7 +22,7 @@
         devices.longitude,
         device_firmware.firmware
     FROM {{ ref('devices') }} AS devices
-    LEFT JOIN {{ ref('int_device_firmware') }} AS device_firmware
+    LEFT JOIN {{ ref('int_device_firmware_latest') }} AS device_firmware
         ON devices.device_id = device_firmware.device_id
 
 {% endsnapshot %}
