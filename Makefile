@@ -1,4 +1,4 @@
-.PHONY: doctor tb-provision tb-smoke bundle-validate dbt-deps dbt-build dbt-lint
+.PHONY: doctor tb-provision tb-smoke bundle-validate dbt-deps dbt-build dbt-lint dbt-freshness
 
 doctor:
 	uv run python scripts/doctor.py .
@@ -22,4 +22,8 @@ dbt-build:
 
 # The dbt templater compiles models, so this needs the same env vars as dbt-build.
 dbt-lint:
-	uv run sqlfluff lint dbt/models
+	uv run sqlfluff lint dbt/models dbt/snapshots
+
+# dbt build does not check source freshness; this does (warn 2 h, error 6 h).
+dbt-freshness:
+	uv run dbt source freshness --project-dir dbt --profiles-dir dbt --target dev

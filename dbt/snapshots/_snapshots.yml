@@ -1,0 +1,14 @@
+version: 2
+
+snapshots:
+  - name: dim_device
+    description: >
+      Device dimension with history (SCD2): devices seed plus int_device_firmware.
+      The current row of a device has dbt_valid_to = null.
+    columns:
+      - name: device_id
+        data_tests:
+          - not_null
+          - unique:
+              config:
+                where: "dbt_valid_to IS NULL"

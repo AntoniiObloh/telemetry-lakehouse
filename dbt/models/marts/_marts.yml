@@ -1,0 +1,96 @@
+version: 2
+
+models:
+  - name: fct_device_hourly
+    description: >
+      Device x hour facts: avg/min/max temperature and humidity without outliers, minimum
+      battery, number of readings and outliers. A normal hour has 120 readings.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - device_id
+              - hour_at
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "readings_count >= outliers_count"
+    columns:
+      - name: device_id
+        data_tests:
+          - not_null
+      - name: hour_at
+        description: Start of the hour, UTC.
+        data_tests:
+          - not_null
+
+  - name: mart_device_health
+    description: >
+      One row per device as of computed_at (build time). health_score = 100 minus penalties:
+      freshness (1/min beyond 5 min of silence, max 40), longest gap in 24 h (1 per 6 min,
+      max 30), outliers in 24 h (1 each, max 15), battery (0.5 per % below 50, max 15).
+    columns:
+      - name: device_id
+        data_tests:
+          - unique
+          - not_null
+      - name: computed_at
+        description: Build time the window and freshness are measured from.
+      - name: last_seen_at
+        description: Latest event_at of the device up to computed_at.
+      - name: minutes_since_last_seen
+        description: Minutes between last_seen_at and computed_at.
+      - name: longest_gap_minutes_24h
+        description: Longest silence in the last 24 hours, window edges included.
+      - name: health_score
+        data_tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 100
+
+  - name: srv_thingsboard
+    description: >
+      Serving model read by the publisher: long format, one telemetry value per row.
+      The contract fixes column names and types, so a change here fails the build instead
+      of silently breaking the publisher.
+    config:
+      contract:
+        enforced: true
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - entity_type
+              - entity_name
+              - ts_ms
+              - key
+    columns:
+      - name: entity_type
+        data_type: string
+        description: ThingsBoard entity type (DEVICE or ASSET).
+        constraints:
+          - type: not_null
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["DEVICE", "ASSET"]
+      - name: entity_name
+        data_type: string
+        description: Device name (sensor-01) or asset name (Site A), as in ThingsBoard.
+        constraints:
+          - type: not_null
+      - name: ts_ms
+        data_type: bigint
+        description: Telemetry timestamp, epoch milliseconds.
+        constraints:
+          - type: not_null
+      - name: key
+        data_type: string
+        description: Telemetry key, e.g. health_score or temperature_avg.
+        constraints:
+          - type: not_null
+      - name: value
+        data_type: double
+        constraints:
+          - type: not_null

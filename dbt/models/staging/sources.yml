@@ -1,0 +1,18 @@
+version: 2
+
+sources:
+  - name: bronze
+    database: lakehouse
+    schema: bronze
+    description: Raw data landed by the Auto Loader job (databricks/src/ingest_bronze.py).
+    tables:
+      - name: telemetry_raw
+        description: >
+          One row per raw event as sent by the generator, defects included (duplicates, late
+          events, schema drift, gaps, outliers). Every source column is a string.
+        config:
+          # The ingest job runs hourly at :05: 2 h means a missed run, 6 h means it is down.
+          loaded_at_field: _ingested_at
+          freshness:
+            warn_after: {count: 2, period: hour}
+            error_after: {count: 6, period: hour}

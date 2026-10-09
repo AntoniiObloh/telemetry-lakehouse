@@ -1,0 +1,14 @@
+version: 2
+
+models:
+  - name: int_device_firmware
+    description: Latest known firmware of every device in the devices seed.
+    columns:
+      - name: device_id
+        data_tests:
+          - unique
+          - not_null
+      - name: firmware
+        description: Null while the device has not reported a firmware yet.
+      - name: firmware_seen_at
+        description: event_at of the latest reading that carried this firmware.

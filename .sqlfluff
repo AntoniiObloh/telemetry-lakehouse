@@ -9,4 +9,16 @@ profile = telemetry_lakehouse
 target = dev
 
 [sqlfluff:rules:capitalisation.keywords]
-capitalisation_policy = lower
+capitalisation_policy = upper
+
+[sqlfluff:rules:capitalisation.literals]
+# NULL, TRUE, FALSE
+capitalisation_policy = upper
+
+[sqlfluff:rules:capitalisation.types]
+# BIGINT, DOUBLE, STRING ...
+extended_capitalisation_policy = upper
+
+[sqlfluff:rules:references.keywords]
+# key and value are fixed by the srv_thingsboard contract (read by the publisher).
+ignore_words = key,value

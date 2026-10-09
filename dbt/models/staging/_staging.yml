@@ -1,0 +1,44 @@
+version: 2
+
+models:
+  - name: stg_telemetry
+    description: >
+      Clean telemetry events: deduplicated on event_id, typed, ts converted to a UTC
+      timestamp, outliers flagged. Incremental merge (insert-only) over the last
+      stg_lookback_days of ingestion.
+    columns:
+      - name: event_id
+        data_tests:
+          - unique
+          - not_null
+      - name: device_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('devices')
+                field: device_id
+      - name: event_at
+        description: Measurement time (from ts, epoch ms), UTC.
+        data_tests:
+          - not_null
+      - name: ts_ms
+        description: Measurement time as epoch milliseconds, as sent by the device.
+      - name: sent_at
+        description: Time of the batch that delivered the event; later than event_at for late events.
+      - name: battery
+        data_tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 100
+      - name: firmware
+        description: Present only from the schema drift date; null before it.
+      - name: is_outlier
+        description: Temperature outside the outlier_temperature_min..max vars.
+        data_tests:
+          - not_null
+      - name: ingested_at
+        description: When Auto Loader loaded the row into bronze (_ingested_at).
+      - name: source_file
+        description: Raw file the row came from (_source_file).

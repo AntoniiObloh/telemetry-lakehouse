@@ -12,15 +12,29 @@ snapshot-paths: ["snapshots"]
 
 clean-targets: ["target", "dbt_packages"]
 
+vars:
+  # stg_telemetry re-reads this many days of _ingested_at on every incremental run.
+  stg_lookback_days: 3
+  # Plausible range for the TH sensors; readings outside it are flagged as outliers.
+  outlier_temperature_min: -40
+  outlier_temperature_max: 85
+
 # Custom schemas apply outside dev only; see macros/generate_schema_name.sql.
 models:
   telemetry_lakehouse:
     staging:
       +schema: silver
       +materialized: view
+    intermediate:
+      +schema: silver
+      +materialized: view
     marts:
       +schema: gold
       +materialized: table
+
+snapshots:
+  telemetry_lakehouse:
+    +schema: silver
 
 seeds:
   telemetry_lakehouse:
