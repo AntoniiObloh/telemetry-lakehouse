@@ -17,6 +17,10 @@ generator = [
     "boto3>=1.43.108",
     "paho-mqtt>=2.1.0",
 ]
+# Runtime deps of the dbt-runner image only (dbt/Dockerfile: uv sync --only-group dbt).
+dbt = [
+    "dbt-databricks>=1.12.6",
+]
 dev = [
     "pytest>=9.1.1",
     "ruff>=0.16.10",

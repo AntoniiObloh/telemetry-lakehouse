@@ -1968,6 +1968,9 @@ dependencies = [
 ]
 
 [package.dev-dependencies]
+dbt = [
+    { name = "dbt-databricks" },
+]
 dev = [
     { name = "pytest" },
     { name = "ruff" },
@@ -1990,6 +1993,7 @@ requires-dist = [
 ]
 
 [package.metadata.requires-dev]
+dbt = [{ name = "dbt-databricks", specifier = ">=1.12.6" }]
 dev = [
     { name = "pytest", specifier = ">=9.1.1" },
     { name = "ruff", specifier = ">=0.16.10" },

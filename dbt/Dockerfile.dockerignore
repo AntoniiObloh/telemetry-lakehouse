@@ -1,0 +1,13 @@
+# Allowlist for dbt/Dockerfile (BuildKit uses this file instead of the root .dockerignore).
+# The build context is the repo root, so nothing else may reach the image.
+*
+!pyproject.toml
+!uv.lock
+!dbt/
+dbt/Dockerfile
+dbt/Dockerfile.dockerignore
+dbt/target/
+dbt/logs/
+dbt/dbt_packages/
+dbt/.user.yml
+**/.env*
