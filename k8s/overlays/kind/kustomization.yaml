@@ -1,0 +1,30 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../../base
+
+# Images are loaded into the kind node with `kind load image-archive`; never pull them.
+patches:
+  - target:
+      kind: Deployment
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/imagePullPolicy
+        value: Never
+  - target:
+      kind: CronJob
+    patch: |-
+      - op: add
+        path: /spec/jobTemplate/spec/template/spec/containers/0/imagePullPolicy
+        value: Never
+  # The raw bucket of this environment (terraform output raw_bucket_name).
+  - target:
+      kind: CronJob
+      name: generator-batch
+    patch: |-
+      - op: add
+        path: /spec/jobTemplate/spec/template/spec/containers/0/env/-
+        value:
+          name: RAW_BUCKET
+          value: telemetry-lakehouse-telemetry-five-devices-use2

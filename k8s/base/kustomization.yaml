@@ -1,0 +1,22 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: lakehouse-dev
+
+resources:
+  - namespace.yaml
+  - generator-live.yaml
+  - generator-batch.yaml
+  - dbt-build.yaml
+
+labels:
+  - pairs:
+      app.kubernetes.io/part-of: telemetry-lakehouse
+    includeTemplates: true
+
+# Image tags in one place; overlays decide where the images come from.
+images:
+  - name: generator
+    newTag: 0.1.0
+  - name: dbt-runner
+    newTag: 0.1.0

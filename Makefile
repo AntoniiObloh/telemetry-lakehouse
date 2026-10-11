@@ -1,4 +1,4 @@
-.PHONY: doctor tb-provision tb-smoke bundle-validate dbt-deps dbt-build dbt-lint dbt-freshness
+.PHONY: doctor tb-provision tb-smoke bundle-validate dbt-deps dbt-build dbt-lint dbt-freshness k8s-validate
 
 doctor:
 	uv run python scripts/doctor.py .
@@ -27,3 +27,7 @@ dbt-lint:
 # dbt build does not check source freshness; this does (warn 2 h, error 6 h).
 dbt-freshness:
 	uv run dbt source freshness --project-dir dbt --profiles-dir dbt --target dev
+
+# Renders the kind overlay and checks it against the schemas of the kind node's version.
+k8s-validate:
+	kubectl kustomize k8s/overlays/kind | docker run --rm -i ghcr.io/yannh/kubeconform:v0.8.0 -strict -summary -kubernetes-version 1.37.0 -

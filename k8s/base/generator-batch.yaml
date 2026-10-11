@@ -1,0 +1,71 @@
+# Every 5 minutes: the one batch that just closed (sent_at = the last 5-minute boundary)
+# goes to S3 raw/. Consecutive runs equal one long run, so no batch is written twice.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: generator-batch
+  labels:
+    app.kubernetes.io/name: generator-batch
+spec:
+  schedule: "*/5 * * * *"
+  timeZone: Etc/UTC
+  concurrencyPolicy: Forbid
+  # A run started later than this would compute the next boundary: skip it instead.
+  startingDeadlineSeconds: 120
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    metadata:
+      labels:
+        app.kubernetes.io/name: generator-batch
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 240
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: generator-batch
+        spec:
+          restartPolicy: Never
+          automountServiceAccountToken: false
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: generator
+              image: generator
+              # The CLI needs an explicit window: (end - 5 min, end], end = last boundary.
+              # --gap-device none: a gap derived inside a 5-minute window is impossible
+              # (the gap is 3 h); the other four defects stay on.
+              command: ["/bin/sh", "-c"]
+              args:
+                - |
+                  end=$(( $(date -u +%s) / 300 * 300 ))
+                  exec python -m generator batch --sink s3 \
+                    --start "$(date -u -d "@$(( end - 300 ))" +%Y-%m-%dT%H:%M)" \
+                    --end "$(date -u -d "@$end" +%Y-%m-%dT%H:%M)" \
+                    --gap-device none
+              # RAW_BUCKET is set by the overlay. The raw bucket lives in us-east-2
+              # (infra var data_region); env wins over the same name from the Secret.
+              env:
+                - name: AWS_DEFAULT_REGION
+                  value: us-east-2
+              # AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY of the IAM user tl-generator.
+              envFrom:
+                - secretRef:
+                    name: generator-aws
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
+                limits:
+                  cpu: 500m
+                  memory: 256Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ["ALL"]
