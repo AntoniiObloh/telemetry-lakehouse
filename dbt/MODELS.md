@@ -2,6 +2,7 @@
 
 Layers: `staging` and `intermediate` build into `silver`, `marts` into `gold`, snapshots
 into `silver` (all into `dbt_dev` on target dev). One row per model; keep it current.
+The `new-dbt-model` skill (lakehouse-toolkit plugin) reads this catalog and appends to it.
 
 | Model | Layer | Grain | Key | Purpose |
 |---|---|---|---|---|
