@@ -12,3 +12,8 @@ output "generator_user_name" {
   description = "IAM user for the generator; create its access key by hand."
   value       = aws_iam_user.generator.name
 }
+
+output "github_plan_role_arn" {
+  description = "Role for the plan job in .github/workflows/ci.yml (secret AWS_PLAN_ROLE_ARN)."
+  value       = aws_iam_role.github_plan.arn
+}

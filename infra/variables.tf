@@ -46,3 +46,19 @@ variable "self_assume" {
   type        = bool
   default     = false
 }
+
+variable "tfstate_bucket" {
+  description = "State bucket created by hand in step 4.1 (tl-tfstate-<suffix>, the bucket in backend.hcl). tl-github-plan reads the state and writes its lock file there."
+  type        = string
+
+  validation {
+    condition     = can(regex("^tl-tfstate-[a-z0-9-]+$", var.tfstate_bucket))
+    error_message = "tfstate_bucket must be the state bucket name, tl-tfstate-<suffix>."
+  }
+}
+
+variable "github_repo" {
+  description = "owner/name of the only repository whose pull_request runs may assume tl-github-plan."
+  type        = string
+  default     = "AntoniiObloh/telemetry-lakehouse"
+}
