@@ -127,8 +127,12 @@ def collect() -> list[Result]:
     results.append(check_docker_daemon())
     results.append(check_container_health(POSTGRES_CONTAINER))
     results.append(check_thingsboard())
-    results.append(check_cli_call("aws identity", "aws", ["sts", "get-caller-identity"]))
-    results.append(check_cli_call("databricks auth", "databricks", ["current-user", "me"]))
+    results.append(
+        check_cli_call("aws identity", "aws", ["sts", "get-caller-identity"])
+    )
+    results.append(
+        check_cli_call("databricks auth", "databricks", ["current-user", "me"])
+    )
     results.extend(check_env(var) for var in ENV_VARS)
     return results
 

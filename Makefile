@@ -1,13 +1,28 @@
-.PHONY: doctor tb-provision tb-smoke bundle-validate dbt-deps dbt-build dbt-lint dbt-freshness
+# ThingsBoard instance for tb-* targets: TB_ENV=thingsboard/.env.cloud for ThingsBoard Cloud.
+TB_ENV ?= thingsboard/.env
+
+.PHONY: doctor tb-provision tb-smoke tb-export tb-import bundle-validate dbt-deps dbt-build dbt-lint dbt-freshness k8s-validate
 
 doctor:
 	uv run python scripts/doctor.py .
 
 tb-provision:
-	uv run python thingsboard/provision.py
+	uv run python thingsboard/provision.py --env-file "$(TB_ENV)"
 
 tb-smoke:
 	uv run python thingsboard/smoke.py
+
+# Every tenant dashboard -> thingsboard/dashboards/<title>.json.
+tb-export:
+	uv run python thingsboard/dashboards.py export --env-file "$(TB_ENV)"
+
+# Updates (or creates) the dashboard titled as the file says:
+#   make tb-import FILE="thingsboard/dashboards/Pipeline ops.json"
+tb-import:
+ifndef FILE
+	$(error FILE is required, e.g. make tb-import FILE=thingsboard/dashboards/Fleet.json)
+endif
+	uv run python thingsboard/dashboards.py import "$(FILE)" --env-file "$(TB_ENV)"
 
 # Needs BUNDLE_VAR_bucket (the raw bucket name) in the environment.
 bundle-validate:
@@ -27,3 +42,7 @@ dbt-lint:
 # dbt build does not check source freshness; this does (warn 2 h, error 6 h).
 dbt-freshness:
 	uv run dbt source freshness --project-dir dbt --profiles-dir dbt --target dev
+
+# Renders the kind overlay and checks it against the schemas of the kind node's version.
+k8s-validate:
+	kubectl kustomize k8s/overlays/kind | docker run --rm -i ghcr.io/yannh/kubeconform:v0.8.0 -strict -summary -kubernetes-version 1.37.0 -

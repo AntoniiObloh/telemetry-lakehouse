@@ -48,4 +48,10 @@
     "Bash(terraform fmt:*)",
     "Bash(terraform validate:*)"
   ]
+},
+"hooks": {
+"PostToolUse": [
+{ "matcher": "Write|Edit",
+"hooks": [{ "type": "command", "command": "python \"$CLAUDE_PROJECT_DIR/.claude/hooks/lint_changed.py\"" }] }
+]
 }}

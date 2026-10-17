@@ -1,0 +1,11 @@
+# Allowlist for publisher/Dockerfile (BuildKit uses this file instead of the root .dockerignore).
+# The build context is the repo root, so nothing else may reach the image.
+*
+!pyproject.toml
+!uv.lock
+!publisher/
+publisher/Dockerfile
+publisher/Dockerfile.dockerignore
+**/__pycache__
+**/*.py[cod]
+**/.env*

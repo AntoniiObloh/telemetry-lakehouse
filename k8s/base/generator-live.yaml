@@ -1,0 +1,59 @@
+# Clean real-time MQTT stream to ThingsBoard (no defects). ThingsBoard runs in docker
+# compose and is reachable from pods through the shared "kind" Docker network.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: generator-live
+  labels:
+    app.kubernetes.io/name: generator-live
+spec:
+  # One MQTT client per device with a fixed client id: a second pod (another replica or
+  # a rolling update) would kick the first one off the broker, so never run two.
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: generator-live
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: generator-live
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: generator
+          image: generator
+          args: ["live", "--host", "thingsboard-thingsboard-ce-1"]
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 250m
+              memory: 128Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            # The generator reads /app/thingsboard/devices.tokens.json (live.TOKENS_FILE).
+            - name: device-tokens
+              mountPath: /app/thingsboard
+              readOnly: true
+      volumes:
+        - name: device-tokens
+          secret:
+            secretName: tb-device-tokens
+            defaultMode: 288 # 0440: owner and fsGroup read only
+            items:
+              - key: devices.tokens.json
+                path: devices.tokens.json

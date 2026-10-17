@@ -4,7 +4,9 @@ import json
 
 import pytest
 
-from generator import GeneratorError
+from generator import GeneratorError, live
+from generator.__main__ import build_parser
+from generator.batch import SLOT_MS
 from generator.live import build_payload, load_tokens
 
 FAKE_TOKEN = "FAKE-TOKEN-do-not-leak"
@@ -55,3 +57,32 @@ def test_bad_tokens_file_is_reported_without_content(devices, tmp_path, content)
 def test_missing_tokens_file_points_to_provisioning(devices, tmp_path):
     with pytest.raises(GeneratorError, match="make tb-provision"):
         load_tokens(tmp_path / "devices.tokens.json", devices)
+
+
+@pytest.mark.parametrize(
+    ("now_ms", "interval_ms", "tick"),
+    [
+        (1_000, 30_000, 30_000),
+        (30_000, 30_000, 60_000),
+        (61_000, 120_000, 120_000),
+        (240_000, 120_000, 360_000),
+    ],
+)
+def test_ticks_fall_on_interval_boundaries(now_ms, interval_ms, tick):
+    assert live.next_tick(now_ms, interval_ms) == tick
+
+
+def test_interval_ticks_are_reading_slots():
+    # A 120 s tick is also a 30 s slot, so its reading equals batch mode's for that ts.
+    assert live.next_tick(1_790_812_812_345, 120_000) % SLOT_MS == 0
+
+
+@pytest.mark.parametrize("value", ["0", "45", "-30", "two"])
+def test_interval_must_be_a_positive_multiple_of_30(value):
+    with pytest.raises(SystemExit):
+        build_parser().parse_args(["live", "--interval", value])
+
+
+def test_live_defaults_keep_the_local_setup():
+    args = build_parser().parse_args(["live"])
+    assert (args.interval, args.tokens_file) == (30, live.TOKENS_FILE)

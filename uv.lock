@@ -1707,6 +1707,20 @@ wheels = [
 ]
 
 [[package]]
+name = "responses"
+version = "0.26.3"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pyyaml" },
+    { name = "requests" },
+    { name = "urllib3" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/9f/47/f216a33221db8eff328987661cf18371afee89c62a62b434b963d6b509c9/responses-0.26.3.tar.gz", hash = "sha256:b0c11ca8131b8b227b8d5108e6ed39772222bd5aab030ed430e8f99057c4c409", size = 86335, upload-time = "2026-08-26T19:17:24.373Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/6d/86/ca7958de70cb0752350575e98229368a3a2f746a2942034b3364e17312bb/responses-0.26.3-py3-none-any.whl", hash = "sha256:74474f799334ac4f37d93b6437ecc3bb1bb5c77a8d31780a338643be2dce0af8", size = 36289, upload-time = "2026-08-26T19:17:23.176Z" },
+]
+
+[[package]]
 name = "rpds-py"
 version = "2026.9.1"
 source = { registry = "https://pypi.org/simple" }
@@ -1960,6 +1974,7 @@ version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
     { name = "boto3" },
+    { name = "databricks-sql-connector" },
     { name = "dbt-databricks" },
     { name = "paho-mqtt" },
     { name = "pyspark" },
@@ -1968,8 +1983,12 @@ dependencies = [
 ]
 
 [package.dev-dependencies]
+dbt = [
+    { name = "dbt-databricks" },
+]
 dev = [
     { name = "pytest" },
+    { name = "responses" },
     { name = "ruff" },
     { name = "sqlfluff" },
     { name = "sqlfluff-templater-dbt" },
@@ -1978,10 +1997,16 @@ generator = [
     { name = "boto3" },
     { name = "paho-mqtt" },
 ]
+publisher = [
+    { name = "databricks-sql-connector" },
+    { name = "requests" },
+    { name = "tb-rest-client" },
+]
 
 [package.metadata]
 requires-dist = [
     { name = "boto3", specifier = ">=1.43.108" },
+    { name = "databricks-sql-connector", specifier = ">=4.4.0" },
     { name = "dbt-databricks", specifier = ">=1.12.6" },
     { name = "paho-mqtt", specifier = ">=2.1.0" },
     { name = "pyspark", specifier = ">=4.2.0" },
@@ -1990,8 +2015,10 @@ requires-dist = [
 ]
 
 [package.metadata.requires-dev]
+dbt = [{ name = "dbt-databricks", specifier = ">=1.12.6" }]
 dev = [
     { name = "pytest", specifier = ">=9.1.1" },
+    { name = "responses", specifier = ">=0.26.3" },
     { name = "ruff", specifier = ">=0.16.10" },
     { name = "sqlfluff", specifier = ">=4.4.0" },
     { name = "sqlfluff-templater-dbt", specifier = ">=4.4.0" },
@@ -1999,6 +2026,11 @@ dev = [
 generator = [
     { name = "boto3", specifier = ">=1.43.108" },
     { name = "paho-mqtt", specifier = ">=2.1.0" },
+]
+publisher = [
+    { name = "databricks-sql-connector", specifier = ">=4.4.0" },
+    { name = "requests", specifier = ">=2.34.2" },
+    { name = "tb-rest-client", specifier = ">=4.3" },
 ]
 
 [[package]]
