@@ -4,6 +4,7 @@ version = "0.1.0"
 requires-python = ">=3.13"
 dependencies = [
     "boto3>=1.43.108",
+    "databricks-sql-connector>=4.4.0",
     "dbt-databricks>=1.12.6",
     "paho-mqtt>=2.1.0",
     "pyspark>=4.2.0",
@@ -23,9 +24,16 @@ dbt = [
 ]
 dev = [
     "pytest>=9.1.1",
+    "responses>=0.26.3",
     "ruff>=0.16.10",
     "sqlfluff>=4.4.0",
     "sqlfluff-templater-dbt>=4.4.0",
+]
+# Runtime deps of the publisher image only (publisher/Dockerfile: uv sync --only-group publisher).
+publisher = [
+    "databricks-sql-connector>=4.4.0",
+    "requests>=2.34.2",
+    "tb-rest-client>=4.3",
 ]
 
 [tool.pytest.ini_options]

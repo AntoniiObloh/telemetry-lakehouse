@@ -1,0 +1,97 @@
+# Hourly at minute 30, 15 minutes after dbt-build: srv_thingsboard rows newer than the
+# watermark (minus a lookback) to ThingsBoard. The watermark lives on the Pipeline asset.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: publisher
+  labels:
+    app.kubernetes.io/name: publisher
+spec:
+  schedule: "30 * * * *"
+  timeZone: Etc/UTC
+  # Two runs at once could both read the old watermark and store it out of order.
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 600
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    metadata:
+      labels:
+        app.kubernetes.io/name: publisher
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 1200
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: publisher
+        spec:
+          restartPolicy: Never
+          automountServiceAccountToken: false
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+            fsGroup: 10001
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: publisher
+              image: publisher
+              env:
+                - name: GOLD_CATALOG
+                  value: lakehouse
+                - name: GOLD_SCHEMA
+                  value: dbt_dev
+                - name: TB_URL
+                  value: http://thingsboard-thingsboard-ce-1:8080
+                - name: TB_TOKENS_FILE
+                  value: /app/thingsboard/devices.tokens.json
+                - name: DATABRICKS_HOST
+                  valueFrom:
+                    secretKeyRef:
+                      name: databricks-dbt
+                      key: DATABRICKS_HOST
+                - name: DATABRICKS_HTTP_PATH
+                  valueFrom:
+                    secretKeyRef:
+                      name: databricks-dbt
+                      key: DATABRICKS_HTTP_PATH
+                # The same token dbt-build uses, under the name the publisher reads.
+                - name: DATABRICKS_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: databricks-dbt
+                      key: DBT_ENV_SECRET_DATABRICKS_TOKEN
+              # TB_USERNAME and TB_PASSWORD of the ThingsBoard tenant administrator.
+              envFrom:
+                - secretRef:
+                    name: tb-credentials
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 192Mi
+                limits:
+                  cpu: 500m
+                  memory: 512Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ["ALL"]
+              volumeMounts:
+                - name: device-tokens
+                  mountPath: /app/thingsboard
+                  readOnly: true
+                - name: tmp
+                  mountPath: /tmp
+          volumes:
+            - name: device-tokens
+              secret:
+                secretName: tb-device-tokens
+                defaultMode: 288 # 0440: owner and fsGroup read only
+                items:
+                  - key: devices.tokens.json
+                    path: devices.tokens.json
+            - name: tmp
+              emptyDir: {}

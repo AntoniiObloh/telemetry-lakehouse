@@ -8,6 +8,7 @@ resources:
   - generator-live.yaml
   - generator-batch.yaml
   - dbt-build.yaml
+  - publisher.yaml
 
 labels:
   - pairs:
@@ -19,4 +20,6 @@ images:
   - name: generator
     newTag: 0.1.0
   - name: dbt-runner
+    newTag: 0.1.0
+  - name: publisher
     newTag: 0.1.0
