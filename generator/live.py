@@ -106,6 +106,15 @@ def publish(client: mqtt.Client, payload: dict) -> bool:
     return info.is_published()
 
 
+def next_tick(now_ms: int, interval_ms: int) -> int:
+    """The first interval boundary after now_ms.
+
+    interval_ms is a multiple of SLOT_MS, so every tick is a 30 s slot and the reading for
+    it is the same one batch mode produces for that ts.
+    """
+    return (now_ms // interval_ms + 1) * interval_ms
+
+
 def run(
     devices: list[Device],
     tokens: dict[str, str],
@@ -113,8 +122,9 @@ def run(
     host: str,
     port: int,
     duration_min: float | None = None,
+    interval_ms: int = SLOT_MS,
 ) -> None:
-    """Send on every 30 s boundary until Ctrl+C or duration_min elapses."""
+    """Send on every interval boundary (30 s by default) until Ctrl+C or duration_min."""
     clients: dict[str, mqtt.Client] = {}
     try:
         for device in devices:
@@ -124,7 +134,7 @@ def run(
         print(f"connected {len(clients)}/{len(devices)} devices to {host}:{port}")
 
         started = time.time()
-        next_ts = (int(started * 1000) // SLOT_MS + 1) * SLOT_MS
+        next_ts = next_tick(int(started * 1000), interval_ms)
         while duration_min is None or next_ts / 1000 <= started + duration_min * 60:
             time.sleep(max(0.0, next_ts / 1000 - time.time()))
             sent = sum(
@@ -134,7 +144,7 @@ def run(
             print(
                 f"{time.strftime('%H:%M:%S', time.gmtime(next_ts / 1000))}Z sent {sent}/{len(devices)}"
             )
-            next_ts += SLOT_MS
+            next_ts += interval_ms
     except KeyboardInterrupt:
         print("stopped", file=sys.stderr)
     finally:

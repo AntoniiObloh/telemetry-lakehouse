@@ -115,7 +115,10 @@ tests/
 - Loop: wait for the next 30-s boundary → for each device the clean reading for that `ts` →
   `{"ts": ms, "values": {...}}` to `v1/devices/me/telemetry`. Prints one line per tick
   (`... sent 5/5`). Ctrl+C disconnects cleanly. Flags: `--host`, `--port`,
-  `--duration-min` (optional).
+  `--duration-min` (optional), `--interval` (seconds, a multiple of 30; 120 keeps ThingsBoard
+  Cloud's free plan quota) and `--tokens-file` (the Cloud tokens are
+  `thingsboard/devices.cloud.tokens.json`). Every tick is a 30-s slot, so a reading is the
+  same one batch mode gives for that `ts`.
 
 ## CLI
 ```
@@ -124,6 +127,7 @@ uv run python -m generator batch --sink file|s3 --start 2026-10-06 --end 2026-10
     [--gap-device sensor-03] [--gap-hours 3] [--gap-start 2026-10-07T13:30]
     [--outlier-rate 0.005] [--no-defects] [--out-dir data]
 uv run python -m generator live [--seed 42] [--host localhost] [--port 1883] [--duration-min N]
+    [--interval 30] [--tokens-file thingsboard/devices.tokens.json]
 ```
 - `--start` and `--end` are required: a date or a date-time, UTC only. Both must be
   aligned to 5 minutes, with `start < end`. Rates must be within 0..1, and `--gap-device`

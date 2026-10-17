@@ -24,6 +24,21 @@ def parse_utc(text: str) -> int:
     return int(moment.timestamp() * 1000)
 
 
+def parse_interval(text: str) -> int:
+    """Seconds between live points: a positive multiple of 30 (the reading slot)."""
+    try:
+        seconds = int(text)
+    except ValueError:
+        raise argparse.ArgumentTypeError(
+            f"not a whole number of seconds: '{text}'"
+        ) from None
+    if seconds <= 0 or seconds % 30:
+        raise argparse.ArgumentTypeError(
+            f"{seconds}: must be a positive multiple of 30"
+        )
+    return seconds
+
+
 def parse_drift(text: str) -> int | None:
     return None if text.lower() == "none" else parse_utc(text)
 
@@ -79,6 +94,18 @@ def build_parser() -> argparse.ArgumentParser:
     stream.add_argument(
         "--duration-min", type=float, help="stop after this many minutes"
     )
+    stream.add_argument(
+        "--interval",
+        type=parse_interval,
+        default=30,
+        help="seconds between points, a multiple of 30 (120 for ThingsBoard Cloud)",
+    )
+    stream.add_argument(
+        "--tokens-file",
+        type=Path,
+        default=live.TOKENS_FILE,
+        help="device tokens (thingsboard/devices.cloud.tokens.json for Cloud)",
+    )
     return parser
 
 
@@ -121,8 +148,16 @@ def run_batch(args: argparse.Namespace) -> int:
 
 def run_live(args: argparse.Namespace) -> int:
     devices = load_devices()
-    tokens = live.load_tokens(live.TOKENS_FILE, devices)
-    live.run(devices, tokens, args.seed, args.host, args.port, args.duration_min)
+    tokens = live.load_tokens(args.tokens_file, devices)
+    live.run(
+        devices,
+        tokens,
+        args.seed,
+        args.host,
+        args.port,
+        args.duration_min,
+        interval_ms=args.interval * 1000,
+    )
     return 0
 
 
