@@ -28,7 +28,8 @@ generator ──MQTT, every 30 s────────────────
 Why it is built this way: [docs/adr/](docs/adr/). What to do when something breaks:
 [docs/runbook.md](docs/runbook.md).
 
-**Public dashboard:** _TODO: the public link of Fleet on ThingsBoard Cloud._
+**Public dashboard:** [Fleet on ThingsBoard Cloud](https://thingsboard.cloud/dashboard/7429bf50-ca30-11f1-adf1-29dbfc808686?publicId=31006100-ca32-11f1-afdc-397ada9afcbe)
+(read-only, no login).
 
 ## Run it in 15 minutes
 
@@ -98,12 +99,27 @@ What the repository shows:
 | dbt | 7 resources (seed, staging, intermediate, snapshot, 3 marts), 40 nodes with tests |
 | Claude tooling | skills `tf-change`, `new-dbt-model`, `tb-dashboard`, `ship-model`; agents `log-reader`, `dbt-reviewer`, `infra-reviewer`; a PreToolUse guard and a PostToolUse lint hook |
 
-Numbers still to fill in (no source for them yet):
+What it cost:
 
 | | Source | Value |
 |---|---|---|
-| Setup cost (AWS + Databricks + Claude) | billing pages | _TODO_ |
-| Claude tokens | Pipeline ops dashboard (Claude token telemetry, step 8.5) | _TODO_ |
+| AWS | Cost Explorer, 2026-10-01 to 10-17 (estimated) | 0.00 USD: S3, IAM and Budgets stayed inside the free tier |
+| Databricks | Free Edition | 0 USD (daily serverless quotas instead of a bill) |
+| ThingsBoard | local CE in Docker, ThingsBoard Cloud free plan | 0 USD |
+| Claude | Claude Pro subscription | 20 USD a month, flat; plan limits, no per-token bill |
+| Claude tokens, this project | the session transcripts of this repo | 1.25 M output, 8.5 M cache writes, 312 M cache reads |
+| The same tokens at API prices | `npx ccusage@latest session`, the 7 sessions of this repo | about 140 USD (133 USD of it one long session) |
+
+The tokens are what the sessions used, not what was paid: on a subscription they count
+against the plan's limits, and the API price is only what the same work would cost
+pay-as-you-go. Almost all of the input is re-read prompt cache: a long session sends its
+context again on every turn, which is also why one session holds most of the cost.
+
+Still to fill in:
+
+| | Source | Value |
+|---|---|---|
+| Claude tokens on the Pipeline ops dashboard | Claude token telemetry (step 8.5) | _TODO_ |
 | Clarifications for the first model vs. the tenth | learning-log | _TODO_ |
 
 What worked:
