@@ -18,7 +18,8 @@ Kustomize manifests for the local kind cluster `lakehouse`, namespace `lakehouse
 1. Cluster: `kind create cluster --name lakehouse`.
 2. Images `generator:0.1.0`, `dbt-runner:0.1.0` and `publisher:0.1.0` built and loaded
    into kind.
-3. ThingsBoard on the `kind` Docker network (`thingsboard/docker-compose.yml`), so pods
+3. ThingsBoard on the `kind` Docker network: from `thingsboard/`,
+   `docker compose -f docker-compose.yml -f docker-compose.kind.yml up -d`, so pods
    reach it as `thingsboard-thingsboard-ce-1`.
 4. Secrets, created by hand and never committed. Values are taken from files and
    environment variables, so they are never typed or pasted (PowerShell):

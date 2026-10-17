@@ -182,7 +182,8 @@ Not a CronJob: one replica, always on, image `generator:0.1.0`, Secret `tb-devic
 `HH:MM:SSZ sent 5/5` every 30 s. `CrashLoopBackOff` with `cannot reach` or `no CONNACK`:
 ThingsBoard is down, or `connection rejected`: a token changed.
 
-**Fix.** Start ThingsBoard (`docker compose -f thingsboard/docker-compose.yml up -d`), or
+**Fix.** Start ThingsBoard on the kind network (from `thingsboard/`:
+`docker compose -f docker-compose.yml -f docker-compose.kind.yml up -d`), or
 re-provision and recreate `tb-device-tokens`, then
 `kubectl -n lakehouse-dev rollout restart deployment/generator-live`.
 

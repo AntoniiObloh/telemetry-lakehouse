@@ -73,6 +73,7 @@ uv run python -m publisher --from 2026-10-06 --to 2026-10-06
 
 # 4. Optional: the scheduled jobs in kind
 kind create cluster --name lakehouse
+cd thingsboard; docker compose -f docker-compose.yml -f docker-compose.kind.yml up -d; cd ..   # pods reach ThingsBoard
 make k8s-validate                                # then see k8s/README.md (images, secrets, apply)
 ```
 

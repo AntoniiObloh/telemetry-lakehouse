@@ -1,0 +1,12 @@
+# Override: joins thingsboard-ce to the kind cluster's Docker network, so pods reach it as
+# thingsboard-thingsboard-ce-1. Needs the cluster first (`kind create cluster --name lakehouse`
+# creates the network); without it use docker-compose.yml alone. From thingsboard/:
+#   docker compose -f docker-compose.yml -f docker-compose.kind.yml up -d
+services:
+  thingsboard-ce:
+    # default: postgres; kind: the pods.
+    networks: [default, kind]
+
+networks:
+  kind:
+    external: true

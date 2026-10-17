@@ -32,15 +32,9 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    # default: postgres; kind: reachable from pods in the kind cluster as thingsboard-ce.
-    networks: [default, kind]
+    # For pods in the kind cluster, add docker-compose.kind.yml (it joins the kind network).
 
 volumes:
   postgres-data:
     name: tb-postgres-data
     driver: local
-
-networks:
-  # Created by `kind create cluster`; compose only attaches to it.
-  kind:
-    external: true
