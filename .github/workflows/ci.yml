@@ -188,8 +188,9 @@ jobs:
       - name: Download prod-manifest from the last successful deploy
         id: manifest
         run: |
+          # Fails while deploy.yml is not on main yet: then there is simply no manifest.
           run_id=$(gh run list --workflow deploy.yml --branch main --status success \
-            --limit 1 --json databaseId --jq '.[0].databaseId // empty')
+            --limit 1 --json databaseId --jq '.[0].databaseId // empty' 2>/dev/null || true)
           if [ -n "$run_id" ] && gh run download "$run_id" --name prod-manifest --dir prod-manifest; then
             echo "found=true" >> "$GITHUB_OUTPUT"
           else
