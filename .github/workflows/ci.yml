@@ -1,5 +1,6 @@
 # Pull request checks. Secrets (repo settings): DATABRICKS_HOST, DATABRICKS_HTTP_PATH,
-# DBT_ENV_SECRET_DATABRICKS_TOKEN (sqlfluff and dbt), ANTHROPIC_API_KEY (diagnose).
+# DBT_ENV_SECRET_DATABRICKS_TOKEN (sqlfluff and dbt), CLAUDE_CODE_OAUTH_TOKEN (review and
+# diagnose: `claude setup-token`, runs on the Claude subscription, no API key).
 name: ci
 
 on:
@@ -120,7 +121,8 @@ jobs:
 
   review:
     # Claude reviews the PR against CLAUDE.md and .claude/rules/*; real problems only.
-    # Secret: ANTHROPIC_API_KEY.
+    # Secret: CLAUDE_CODE_OAUTH_TOKEN. github_token instead of the Claude GitHub App: the
+    # comments come from github-actions.
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -132,7 +134,8 @@ jobs:
           fetch-depth: 1
       - uses: anthropics/claude-code-action@v1
         with:
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ github.token }}
           prompt: |
             REPO: ${{ github.repository }}
             PR NUMBER: ${{ github.event.pull_request.number }}
@@ -234,7 +237,7 @@ jobs:
       - run: npm install -g @anthropic-ai/claude-code@2.1.291
       - name: Ask Claude why dbt-ci failed
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
         run: |
           if [ -f results/run_results.json ]; then
             # Only the failed nodes, so the prompt stays small.
