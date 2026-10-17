@@ -5,15 +5,18 @@ Idempotent by name: re-running never creates duplicates.
   site, model, latitude, longitude.
 - Assets: Fleet (fleet), Site A / Site B (site), Pipeline (pipeline).
 - Contains relations: Fleet -> Site A/B, Site -> its devices.
-- Device access tokens -> thingsboard/devices.tokens.json (never printed).
+- Device access tokens -> the tokens file of the env file (never printed):
+  .env -> devices.tokens.json, .env.cloud -> devices.cloud.tokens.json.
 
 Additive only: nothing is deleted or re-linked. If a device moves to another site in the
 CSV, the old Site -> device relation stays and has to be removed by hand.
 
-Credentials (TB_URL, TB_USERNAME, TB_PASSWORD) come from thingsboard/.env;
-variables already set in the environment take precedence.
+Credentials (TB_URL, TB_USERNAME, TB_PASSWORD) come from thingsboard/.env, or from the
+file given with --env-file (thingsboard/.env.cloud for ThingsBoard Cloud); variables
+already set in the environment take precedence.
 """
 
+import argparse
 import csv
 import json
 import os
@@ -44,6 +47,52 @@ class ProvisionError(Exception):
     """Expected failure with a message that is safe to print."""
 
 
+def api_error(exc: ApiException) -> str:
+    """Status, reason and ThingsBoard's own message from the JSON body.
+
+    Never str(exc): it holds the response headers and the whole body.
+    """
+    message = ""
+    try:
+        body = json.loads(exc.body or "{}")
+        if isinstance(body, dict):
+            message = str(body.get("message") or "")[:300]
+    except (TypeError, ValueError):
+        pass
+    text = f"{exc.status} {exc.reason or ''}".strip()
+    return f"{text}: {message}" if message else text
+
+
+def shown(path: Path) -> str:
+    """Path for messages: relative to the repo when inside it."""
+    try:
+        return path.resolve().relative_to(ROOT).as_posix()
+    except ValueError:
+        return str(path)
+
+
+def tokens_file_for(env_file: Path) -> Path:
+    """Device tokens next to the env file, one file per ThingsBoard instance.
+
+    .env -> devices.tokens.json, .env.cloud -> devices.cloud.tokens.json; every name
+    ends in .tokens.json, so .gitignore and the Read deny rule cover it.
+    """
+    instance = (
+        env_file.name.removeprefix(".env.") if env_file.name.startswith(".env.") else ""
+    )
+    name = f"devices.{instance}.tokens.json" if instance else "devices.tokens.json"
+    return env_file.parent / name
+
+
+def env_file_arg(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        "--env-file",
+        type=Path,
+        default=ENV_FILE,
+        help="TB_URL, TB_USERNAME, TB_PASSWORD (default thingsboard/.env)",
+    )
+
+
 def load_env(path: Path) -> dict[str, str]:
     """Parse KEY=VALUE lines; environment variables override file values."""
     values: dict[str, str] = {}
@@ -64,7 +113,7 @@ def load_env(path: Path) -> dict[str, str]:
     missing = [key for key in REQUIRED_ENV if not values.get(key)]
     if missing:
         raise ProvisionError(
-            f"missing in {path.relative_to(ROOT)} or environment: {', '.join(missing)}"
+            f"missing in {shown(path)} or environment: {', '.join(missing)}"
         )
     return values
 
@@ -160,7 +209,9 @@ def write_tokens(path: Path, tokens: dict[str, str]) -> None:
     os.replace(tmp, path)
 
 
-def provision(client: RestClientCE, devices: list[dict]) -> None:
+def provision(
+    client: RestClientCE, devices: list[dict], tokens_file: Path = TOKENS_FILE
+) -> None:
     fleet, created = get_or_create_asset(client, *FLEET)
     report("asset", FLEET[0], created)
     _, created = get_or_create_asset(client, *PIPELINE)
@@ -193,29 +244,32 @@ def provision(client: RestClientCE, devices: list[dict]) -> None:
             device.id
         ).credentials_id
 
-    write_tokens(TOKENS_FILE, tokens)
+    write_tokens(tokens_file, tokens)
     print(f"relations Site -> devices, server attributes - ok ({len(devices)} devices)")
-    print(
-        f"tokens written to {TOKENS_FILE.relative_to(ROOT).as_posix()} ({len(tokens)} devices)"
-    )
+    print(f"tokens written to {shown(tokens_file)} ({len(tokens)} devices)")
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    env_file_arg(parser)
+    args = parser.parse_args(argv)
     try:
-        env = load_env(ENV_FILE)
+        if not args.env_file.exists():
+            raise ProvisionError(f"{shown(args.env_file)} not found")
+        env = load_env(args.env_file)
         devices = load_devices(DEVICES_CSV)
         with RestClientCE(base_url=env["TB_URL"]) as client:
             client.login(username=env["TB_USERNAME"], password=env["TB_PASSWORD"])
             # login() does not raise on bad credentials: the token just stays empty.
             if not client.token_info.get("token"):
                 raise ProvisionError("login failed: check TB_USERNAME/TB_PASSWORD")
-            provision(client, devices)
+            provision(client, devices, tokens_file_for(args.env_file))
     except ProvisionError as exc:
         print(f"FAIL {exc}", file=sys.stderr)
         return 1
     except ApiException as exc:
         # str(exc) contains response headers and body; print only status and reason.
-        print(f"FAIL ThingsBoard API error: {exc.status} {exc.reason}", file=sys.stderr)
+        print(f"FAIL ThingsBoard API error: {api_error(exc)}", file=sys.stderr)
         return 1
     except (requests.RequestException, urllib3.exceptions.HTTPError) as exc:
         print(f"FAIL cannot reach ThingsBoard: {type(exc).__name__}", file=sys.stderr)

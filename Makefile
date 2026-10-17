@@ -1,13 +1,28 @@
-.PHONY: doctor tb-provision tb-smoke bundle-validate dbt-deps dbt-build dbt-lint dbt-freshness k8s-validate
+# ThingsBoard instance for tb-* targets: TB_ENV=thingsboard/.env.cloud for ThingsBoard Cloud.
+TB_ENV ?= thingsboard/.env
+
+.PHONY: doctor tb-provision tb-smoke tb-export tb-import bundle-validate dbt-deps dbt-build dbt-lint dbt-freshness k8s-validate
 
 doctor:
 	uv run python scripts/doctor.py .
 
 tb-provision:
-	uv run python thingsboard/provision.py
+	uv run python thingsboard/provision.py --env-file "$(TB_ENV)"
 
 tb-smoke:
 	uv run python thingsboard/smoke.py
+
+# Every tenant dashboard -> thingsboard/dashboards/<title>.json.
+tb-export:
+	uv run python thingsboard/dashboards.py export --env-file "$(TB_ENV)"
+
+# Updates (or creates) the dashboard titled as the file says:
+#   make tb-import FILE="thingsboard/dashboards/Pipeline ops.json"
+tb-import:
+ifndef FILE
+	$(error FILE is required, e.g. make tb-import FILE=thingsboard/dashboards/Fleet.json)
+endif
+	uv run python thingsboard/dashboards.py import "$(FILE)" --env-file "$(TB_ENV)"
 
 # Needs BUNDLE_VAR_bucket (the raw bucket name) in the environment.
 bundle-validate:
